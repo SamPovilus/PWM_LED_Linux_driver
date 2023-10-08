@@ -1,0 +1,18 @@
+menu "user packages " 
+config gpio-demo  
+	 bool "gpio-demo"
+	 help
+	
+config message-led-control  
+	 bool "message-led-control"
+	 help
+	
+config peekpoke  
+	 bool "peekpoke"
+	 help
+	
+config pwm  
+	 bool "pwm"
+	 help
+	
+endmenu

@@ -1,0 +1,15 @@
+/include/ "system-conf.dtsi"
+/ {
+};
+
+&sdhci0 {
+       no-1-8-v;
+       broken-mmc-highspeed;
+       disable-wp;
+};
+
+&sdhci1 {
+       no-1-8-v;
+       broken-mmc-highspeed;
+       disable-wp;
+};
