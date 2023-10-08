@@ -53,10 +53,10 @@ DEFINE_IDR(mydev_idr);
  */
 static int Device_Open = 0;
 
-static void set_blink_ctrl(void)
+static void set_blink_ctrl(void __iomem *base_addr)
 {
 	printk("KERNEL PRINT : set_blink_ctrl \n\r");
-	*(unsigned int *)mmio = 0x1;
+	*(unsigned int *)base_addr = 0x1;
 }
 
 static void set_red_50(void)
@@ -138,6 +138,17 @@ static ssize_t device_write(struct file *file,
 {
 	return SUCCESS;
 }
+
+struct blink_local
+{
+	int irq;
+	unsigned long minor;
+	unsigned long mem_start;
+	unsigned long mem_end;
+	void __iomem *base_addr;
+};
+
+
 /*
  * This function is called whenever a process tries to do an ioctl on our
  * device file. We get two extra parameters (additional to the inode and file
@@ -168,8 +179,7 @@ long device_ioctl(struct file *file,	  /* ditto */
 	}
 	else
 	{
-				printk("Ioctling minor %d\n", minor);
-
+		printk("Ioctling minor number %d\n", minor);
 	}
 
 	switch (ioctl_num)
@@ -177,7 +187,7 @@ long device_ioctl(struct file *file,	  /* ditto */
 	case IOCTL_ON_LED:
 
 		temp = (char *)ioctl_param;
-		set_blink_ctrl();
+		set_blink_ctrl(dev->base_addr);
 		break;
 	case IOCTL_STOP_LED:
 		temp = (char *)ioctl_param;
@@ -230,14 +240,6 @@ char *mystr = "default";
 module_param(myint, int, S_IRUGO);
 module_param(mystr, charp, S_IRUGO);
 
-struct blink_local
-{
-	int irq;
-	unsigned long minor;
-	unsigned long mem_start;
-	unsigned long mem_end;
-	void __iomem *base_addr;
-};
 
 static irqreturn_t blink_irq(int irq, void *lp)
 {
@@ -274,7 +276,7 @@ static int blink_probe(struct platform_device *pdev)
 
 	mutex_lock(&minor_lock);
 	lp->minor = idr_alloc(&mydev_idr, lp, 0, MYDEV_MAX_DEVICES, GFP_KERNEL);
-	dev_info("Able to allocate minor number %d\n",lp->minor);
+	dev_info(dev, "Able to allocate minor number %d\n", lp->minor);
 	if (lp->minor < 0)
 	{
 		mutex_unlock(&minor_lock);
@@ -377,7 +379,7 @@ static struct platform_driver blink_driver = {
 static int __init blink_init(void)
 {
 	int rc = 0;
-	printk("<1>Hello module world. version 0.0.9\n");
+	printk("<1>Hello module world. version 0.0.b\n");
 	printk("<1>Module parameters were (0x%08x) and \"%s\"\n", myint, mystr);
 
 	/*
