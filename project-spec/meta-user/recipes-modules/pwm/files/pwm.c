@@ -29,6 +29,8 @@
 #include <linux/of_device.h>
 #include <linux/of_platform.h>
 
+#include <linux/mutex.h>
+
 #include <asm/uaccess.h> /* for get_user and put_user */
 #include <asm/io.h>
 #include "pwm.h"
@@ -36,8 +38,14 @@
 #define DEVICE_NAME "/dev/blink_Dev"
 
 #define BLINK_CTRL_REG 0xa0010000
+
+#define MYDEV_MAX_DEVICES 10
+
 static unsigned long *mmio;
 static int major_num;
+
+DEFINE_MUTEX(minor_lock);
+DEFINE_IDR(mydev_idr);
 
 /*
  * Is the device open right now? Used to prevent
@@ -150,6 +158,20 @@ long device_ioctl(struct file *file,	  /* ditto */
 	/*
 	 * Switch according to the ioctl called
 	 */
+
+	unsigned minor = iminor(file->f_inode);
+	struct blink_local *dev = (struct blink_local *)idr_find(&mydev_idr, minor);
+	if (!dev)
+	{
+		printk("Unable to find device associated with minor number %d\n", minor);
+		return -EINVAL;
+	}
+	else
+	{
+				printk("Ioctling minor %d\n", minor);
+
+	}
+
 	switch (ioctl_num)
 	{
 	case IOCTL_ON_LED:
@@ -211,7 +233,7 @@ module_param(mystr, charp, S_IRUGO);
 struct blink_local
 {
 	int irq;
-	unsigned long module_count;
+	unsigned long minor;
 	unsigned long mem_start;
 	unsigned long mem_end;
 	void __iomem *base_addr;
@@ -250,6 +272,16 @@ static int blink_probe(struct platform_device *pdev)
 
 	dev_set_drvdata(dev, lp);
 
+	mutex_lock(&minor_lock);
+	lp->minor = idr_alloc(&mydev_idr, lp, 0, MYDEV_MAX_DEVICES, GFP_KERNEL);
+	dev_info("Able to allocate minor number %d\n",lp->minor);
+	if (lp->minor < 0)
+	{
+		mutex_unlock(&minor_lock);
+		goto error1;
+	}
+	mutex_unlock(&minor_lock);
+
 	lp->mem_start = r_mem->start;
 	lp->mem_end = r_mem->end;
 
@@ -275,13 +307,11 @@ static int blink_probe(struct platform_device *pdev)
 	r_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 	if (!r_irq)
 	{
-		lp->module_count++;
-
 		dev_info(dev, "no IRQ found\n");
-		dev_info(dev, "blink at 0x%08x mapped to 0x%08x module count=%d\n",
+		dev_info(dev, "blink at 0x%08x mapped to 0x%08x minor number %d\n",
 				 (unsigned int __force)lp->mem_start,
 				 (unsigned int __force)lp->base_addr,
-				 lp->module_count);
+				 lp->minor);
 		return 0;
 	}
 	lp->irq = r_irq->start;
@@ -294,12 +324,11 @@ static int blink_probe(struct platform_device *pdev)
 		goto error3;
 	}
 
-	lp->module_count++;
-	dev_info(dev, "blink at 0x%08x mapped to 0x%08x, irq=%d module_count=%d\n",
+	dev_info(dev, "blink at 0x%08x mapped to 0x%08x, irq=%d minor number %d\n",
 			 (unsigned int __force)lp->mem_start,
 			 (unsigned int __force)lp->base_addr,
 			 lp->irq,
-			 lp->module_count);
+			 lp->minor);
 	return 0;
 error3:
 	free_irq(lp->irq, lp);
@@ -308,7 +337,7 @@ error2:
 error1:
 	kfree(lp);
 	dev_set_drvdata(dev, NULL);
-
+error0:
 	return rc;
 }
 
@@ -348,7 +377,7 @@ static struct platform_driver blink_driver = {
 static int __init blink_init(void)
 {
 	int rc = 0;
-	printk("<1>Hello module world. version 0.0.7\n");
+	printk("<1>Hello module world. version 0.0.9\n");
 	printk("<1>Module parameters were (0x%08x) and \"%s\"\n", myint, mystr);
 
 	/*

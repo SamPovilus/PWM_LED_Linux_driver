@@ -87,7 +87,7 @@ void ioctl_RED_100(int file_desc)
 /*
 * Main - Call the ioctl functions
 */
-int main()
+int main(int argc, char* argv[])
 {
 	int Choice;
 	int exitflag=1;
@@ -95,12 +95,12 @@ int main()
 
 
 	printf("################################ \n\r");
-	printf("      Blink LED Application 0.1  \n\r");
+	printf("      Blink LED Application 0.2  \n\r");
 	printf("################################ \n\r");
-	file_desc = open(DEVICE_FILE_NAME, O_RDWR | O_SYNC);
+	file_desc = open(argv[1], O_RDWR | O_SYNC);
 	if (file_desc < 0) 
 	{
-		printf("Can't open device file: %s\n", DEVICE_FILE_NAME);
+		printf("Can't open device file: %s\n", argv[1]);
 		exit(-1);
 	}
 	while (exitflag)
