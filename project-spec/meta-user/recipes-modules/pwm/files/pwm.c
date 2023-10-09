@@ -59,25 +59,14 @@ static void set_blink_ctrl(void __iomem *base_addr)
 	*(unsigned int *)base_addr = 0x1;
 }
 
-static void set_red_50(void __iomem *base_addr)
+static void set_leds(void __iomem *base_addr, led_brightness_struct *brightness)
 {
-	printk("KERNEL PRINT : set_red_50 writing 0x100 to 0x%08x\n\r", (base_addr + 1));
-	writel(0x100,(base_addr + 4));
+	printk("KERNEL PRINT : set_leds writing %d,%d,%d to 0x%08x\n\r", brightness->red, brightness->green, brightness->blue, (base_addr + 1));
+	writel(brightness->red, (base_addr + 4));
+	writel(brightness->green, (base_addr + 8));
+	writel(brightness->blue, (base_addr + 12));
+
 	//*((unsigned int *)(base_addr + 1)) = 0x100;
-}
-
-static void set_red_100(void __iomem *base_addr)
-{
-	printk("KERNEL PRINT : set_red_10 writing 0xffff to 0x%08x\n\r", (base_addr + 1));
-	//*((unsigned int *)(base_addr + 1)) = 0xffff;
-	writel( 0xffff,(base_addr + 4));
-}
-
-static void set_red_0(void __iomem *base_addr)
-{
-	printk("KERNEL PRINT : set_red_0 writing 0x0 to 0x%08x\n\r", (base_addr + 1));
-	//*((unsigned int *)(base_addr + 1)) = 0x0;
-	writel(0x0,(base_addr + 4));
 }
 
 static void reset_blink_ctrl(void __iomem *base_addr)
@@ -85,6 +74,9 @@ static void reset_blink_ctrl(void __iomem *base_addr)
 
 	printk("KERNEL PRINT : reset_blink_ctrl \n\r");
 	*(unsigned int *)base_addr = 0x0;
+	writel(0x0, (base_addr + 4));
+	writel(0x0, (base_addr + 8));
+	writel(0x0, (base_addr + 12));
 }
 /*
  * This is called whenever a process attempts to open the device file
@@ -195,17 +187,8 @@ long device_ioctl(struct file *file,	  /* ditto */
 		temp = (char *)ioctl_param;
 		reset_blink_ctrl(dev->base_addr);
 		break;
-	case IOCTL_RED_50:
-		temp = (char *)ioctl_param;
-		set_red_50(dev->base_addr);
-		break;
-	case IOCTL_RED_0:
-		temp = (char *)ioctl_param;
-		set_red_0(dev->base_addr);
-		break;
-	case IOCTL_RED_100:
-		temp = (char *)ioctl_param;
-		set_red_100(dev->base_addr);
+	case IOCTL_LED_CONTROL:
+		set_leds(dev->base_addr, (led_brightness_struct *)ioctl_param);
 		break;
 	}
 	return SUCCESS;
@@ -344,7 +327,7 @@ error2:
 error1:
 	kfree(lp);
 	dev_set_drvdata(dev, NULL);
-error0:
+
 	return rc;
 }
 
@@ -384,7 +367,7 @@ static struct platform_driver blink_driver = {
 static int __init blink_init(void)
 {
 	int rc = 0;
-	printk("<1>Hello module world. version 0.0.17\n");
+	printk("<1>Hello module world. version 0.0.18\n");
 	printk("<1>Module parameters were (0x%08x) and \"%s\"\n", myint, mystr);
 
 	/*

@@ -3,5 +3,11 @@
         "activityBar.background": "#15332C",
         "titleBar.activeBackground": "#1D473E",
         "titleBar.activeForeground": "#F5FBFA"
+    },
+    "files.associations": {
+        "of_address.h": "c",
+        "of.h": "c",
+        "kobject.h": "c",
+        "list.h": "c"
     }
 }

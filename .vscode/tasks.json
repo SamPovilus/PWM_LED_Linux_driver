@@ -15,13 +15,13 @@
 		{
 			"label": "petalinux env",
 			"type": "shell",
-			"command" : "source /home/spovilus/petalinux/settings.sh"
+			"command": "source /home/spovilus/petalinux/settings.sh"
 		},
 		{
 			"label": "kernel module build",
 			"type": "shell",
 			"command": "petalinux-build",
-			"preLaunchTask" : "petalinux env",
+			"preLaunchTask": "petalinux env",
 			"args": [
 				"-c",
 				"pwm",
@@ -29,10 +29,27 @@
 				"compile"
 			],
 			"group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": []
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [
+				
+				{
+					"base": "$gcc",
+					"fileLocation": [
+						"search",
+						{
+							// "include": [ // Optional; defaults to ["${workspaceFolder}"]
+							// 	"${workspaceFolder}/src",
+							// 	"${workspaceFolder}/extensions"
+							// ],
+							"exclude": [ // Optional
+								"${workspaceFolder}/build"
+							]
+						}
+					],
+				}
+			]
 		},
 		{
 			"label": "kernel module deploy",
@@ -43,10 +60,29 @@
 				" petalinux@messagebasedled:~/"
 			],
 			"group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": []
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "application build",
+			"type": "shell",
+			"command": "petalinux-build",
+			"preLaunchTask": "petalinux env",
+			"args": [
+				"-c",
+				"message-led-control",
+				"-x",
+				"compile"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
 		}
 	]
 }

@@ -54,36 +54,17 @@ void ioctl_OFF_LED(int file_desc)
 	}
 }
 
-void ioctl_RED_50(int file_desc)
+void ioctl_led_brightness(int file_desc, led_brightness_struct led_brightness)
 {
 	int ret_val;
-	ret_val = ioctl(file_desc, IOCTL_RED_50,NULL);
+	ret_val = ioctl(file_desc, IOCTL_LED_CONTROL,&led_brightness);
 	if (ret_val < 0)
 	{
-		printf("IOCTL_RED_50 failed:%d\n", ret_val);
+		printf("ioctl_led_brightness failed:%d\n", ret_val);
 		exit(-1);
 	}
 }
-void ioctl_RED_0(int file_desc)
-{
-	int ret_val;
-	ret_val = ioctl(file_desc, IOCTL_RED_0,NULL);
-	if (ret_val < 0)
-	{
-		printf("IOCTL_RED_50 failed:%d\n", ret_val);
-		exit(-1);
-	}
-}
-void ioctl_RED_100(int file_desc)
-{
-	int ret_val;
-	ret_val = ioctl(file_desc, IOCTL_RED_100,NULL);
-	if (ret_val < 0)
-	{
-		printf("IOCTL_RED_100 failed:%d\n", ret_val);
-		exit(-1);
-	}
-}
+
 /*
 * Main - Call the ioctl functions
 */
@@ -92,10 +73,10 @@ int main(int argc, char* argv[])
 	int Choice;
 	int exitflag=1;
 	int file_desc;
-
+	led_brightness_struct lbrightness;
 
 	printf("################################ \n\r");
-	printf("      Blink LED Application 0.2  \n\r");
+	printf("      Blink LED Application 0.4  \n\r");
 	printf("################################ \n\r");
 	file_desc = open(argv[1], O_RDWR | O_SYNC);
 	if (file_desc < 0) 
@@ -123,18 +104,11 @@ int main(int argc, char* argv[])
 		}
 		else if (2 == Choice )
 		{
-			ioctl_RED_0(file_desc);
-			exitflag	= 1;
-		}
-			else if (3 == Choice )
-		{
-			ioctl_RED_50(file_desc);
-			exitflag	= 1;
-		}
-			else if (4 == Choice )
-		{
-			ioctl_RED_100(file_desc);
-			exitflag	= 1;
+			printf("enter \"red,green,blue\" brightness between 0 and 255\r\n");
+			scanf("%d,%d,%d",&lbrightness.red,&lbrightness.green,&lbrightness.blue);
+			printf("Setting red to %d green to %d blue to %d\r\n",lbrightness.red,lbrightness.green,lbrightness.blue);
+			ioctl_led_brightness(file_desc,lbrightness);
+
 		}
 		else
 		{

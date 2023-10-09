@@ -52,10 +52,14 @@
 * STOP LED BLINK ioctl
 */
 #define IOCTL_STOP_LED _IOR(MAGIC_NUM, 1, char *)
-#define IOCTL_RED_50 _IOR(MAGIC_NUM, 2, char *)
-#define IOCTL_RED_0 _IOR(MAGIC_NUM, 3, char *)
-#define IOCTL_RED_100 _IOR(MAGIC_NUM, 4, char *)
+#define IOCTL_LED_CONTROL _IOR(MAGIC_NUM, 2, char *)
 #define DEBUG
+
+typedef struct led_brightness_struct{
+    int red;
+    int green;
+    int blue;
+}led_brightness_struct;
 
 #define DEVICE_FILE_NAME "/dev/blink_Dev"
 #endif
