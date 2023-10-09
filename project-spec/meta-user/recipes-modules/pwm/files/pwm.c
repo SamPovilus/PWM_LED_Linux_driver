@@ -62,19 +62,22 @@ static void set_blink_ctrl(void __iomem *base_addr)
 static void set_red_50(void __iomem *base_addr)
 {
 	printk("KERNEL PRINT : set_red_50 writing 0x100 to 0x%08x\n\r", (base_addr + 1));
-	*(unsigned int *)(base_addr + 1) = 0x100;
+	writel(0x100,(base_addr + 4));
+	//*((unsigned int *)(base_addr + 1)) = 0x100;
 }
 
 static void set_red_100(void __iomem *base_addr)
 {
 	printk("KERNEL PRINT : set_red_10 writing 0xffff to 0x%08x\n\r", (base_addr + 1));
-	*(unsigned int *)(base_addr + 1) = 0xffff;
+	//*((unsigned int *)(base_addr + 1)) = 0xffff;
+	writel( 0xffff,(base_addr + 4));
 }
 
 static void set_red_0(void __iomem *base_addr)
 {
 	printk("KERNEL PRINT : set_red_0 writing 0x0 to 0x%08x\n\r", (base_addr + 1));
-	*(unsigned int *)(base_addr + 1) = 0x0;
+	//*((unsigned int *)(base_addr + 1)) = 0x0;
+	writel(0x0,(base_addr + 4));
 }
 
 static void reset_blink_ctrl(void __iomem *base_addr)
@@ -288,9 +291,9 @@ static int blink_probe(struct platform_device *pdev)
 	// dev_info(dev,"Mem start 0x%08x", lp->mem_start);/*mem end 0x%08x size 0x%08n",r_mem->start, r_mem->end, r_mem->end - r_mem->start);*/
 	dev_info(dev, "Mem start 0x%08x mem end 0x%08x size 0x%08x", lp->mem_start, lp->mem_end, (lp->mem_end - lp->mem_start));
 
-		if (!request_mem_region(lp->mem_start,
-								lp->mem_end - lp->mem_start + 1,
-								DRIVER_NAME))
+	if (!request_mem_region(lp->mem_start,
+							lp->mem_end - lp->mem_start + 1,
+							DRIVER_NAME))
 	{
 		dev_err(dev, "Couldn't lock memory region at %p\n",
 				(void *)lp->mem_start);
@@ -305,6 +308,7 @@ static int blink_probe(struct platform_device *pdev)
 		rc = -EIO;
 		goto error2;
 	}
+	dev_info(dev, "Base addr remapped to 0x%08x\r\n", lp->base_addr);
 
 	/* Get IRQ for the device */
 	r_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
@@ -380,7 +384,7 @@ static struct platform_driver blink_driver = {
 static int __init blink_init(void)
 {
 	int rc = 0;
-	printk("<1>Hello module world. version 0.0.12\n");
+	printk("<1>Hello module world. version 0.0.17\n");
 	printk("<1>Module parameters were (0x%08x) and \"%s\"\n", myint, mystr);
 
 	/*

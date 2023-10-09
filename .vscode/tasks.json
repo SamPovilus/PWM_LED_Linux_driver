@@ -1,0 +1,52 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cmake",
+			"label": "CMake: build",
+			"command": "build",
+			"targets": [
+				"[N/A - Select Kit]"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "CMake template build task"
+		},
+		{
+			"label": "petalinux env",
+			"type": "shell",
+			"command" : "source /home/spovilus/petalinux/settings.sh"
+		},
+		{
+			"label": "kernel module build",
+			"type": "shell",
+			"command": "petalinux-build",
+			"preLaunchTask" : "petalinux env",
+			"args": [
+				"-c",
+				"pwm",
+				"-x",
+				"compile"
+			],
+			"group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+		},
+		{
+			"label": "kernel module deploy",
+			"type": "shell",
+			"command": "scp",
+			"args": [
+				"./build/tmp/work/zynqmp_generic_xczu1cg-xilinx-linux/pwm/1.0-r0/pwm.ko",
+				" petalinux@messagebasedled:~/"
+			],
+			"group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+		}
+	]
+}
