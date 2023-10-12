@@ -89,9 +89,9 @@ static int device_open(struct inode *inode, struct file *file)
 	/*
 	 * We don't want to talk to two processes at the same time
 	 */
-	if (Device_Open)
-		return -EBUSY;
-	Device_Open++;
+	// if (Device_Open)
+	// 	return -EBUSY;
+	// Device_Open++;
 	/*
 	 * Initialize the message
 	 */
@@ -367,7 +367,7 @@ static struct platform_driver blink_driver = {
 static int __init blink_init(void)
 {
 	int rc = 0;
-	printk("<1>Hello module world. version 0.0.18\n");
+	printk("<1>Hello module world. version 0.0.19\n");
 	printk("<1>Module parameters were (0x%08x) and \"%s\"\n", myint, mystr);
 
 	/*
